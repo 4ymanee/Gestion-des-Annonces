@@ -1,0 +1,74 @@
+@model Web_AIA.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Connexion";
+}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">🏷️ IZIDEAL</div>
+            <h1 class="auth-title">Connexion</h1>
+            <p class="text-muted mb-0">Accédez à votre compte</p>
+        </div>
+
+        <form asp-action="Login" method="post" id="login-form">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            
+            <div class="mb-4">
+                <label asp-for="Email" class="form-label">
+                    <i class="bi bi-envelope me-1"></i>Adresse email
+                </label>
+                <input asp-for="Email" class="form-control form-control-lg" placeholder="votre@email.com" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label">
+                    <i class="bi bi-lock me-1"></i>Mot de passe
+                </label>
+                <div class="input-group">
+                    <input asp-for="Password" class="form-control form-control-lg" placeholder="••••••••" />
+                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword(this)">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label small">Se souvenir de moi</label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg w-100 mb-3" type="submit">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+            </button>
+        </form>
+
+        <div class="text-center">
+            <p class="text-muted mb-0">
+                Pas encore de compte ?
+                <a asp-action="Register" class="fw-semibold">Créer un compte</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePassword(btn) {
+            const input = btn.parentElement.querySelector('input');
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+    </script>
+}

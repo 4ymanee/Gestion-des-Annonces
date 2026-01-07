@@ -1,0 +1,203 @@
+@model Web_AIA.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Tableau de bord";
+}
+
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div>
+        <h1 class="h3 fw-bold mb-1">
+            <i class="bi bi-speedometer2 text-primary me-2"></i>Tableau de bord
+        </h1>
+        <p class="text-muted mb-0">Gérez vos annonces et suivez vos statistiques</p>
+    </div>
+    <a class="btn btn-success d-flex align-items-center" asp-controller="Annonces" asp-action="Create">
+        <i class="bi bi-plus-lg me-2"></i>Nouvelle annonce
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row row-cols-2 row-cols-lg-4 g-4 mb-5">
+    <div class="col">
+        <div class="card border-0 stat-card stat-primary h-100">
+            <div class="card-body text-center py-4">
+                <div class="stat-icon mb-2">
+                    <i class="bi bi-collection text-primary" style="font-size: 2rem;"></i>
+                </div>
+                <div class="stat-value">@Model.TotalAnnonces</div>
+                <div class="stat-label">Total annonces</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-0 stat-card stat-success h-100">
+            <div class="card-body text-center py-4">
+                <div class="stat-icon mb-2">
+                    <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                </div>
+                <div class="stat-value">@Model.AnnoncesPubliees</div>
+                <div class="stat-label">Publiées</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-0 stat-card stat-warning h-100">
+            <div class="card-body text-center py-4">
+                <div class="stat-icon mb-2">
+                    <i class="bi bi-pencil-square text-warning" style="font-size: 2rem;"></i>
+                </div>
+                <div class="stat-value">@Model.AnnoncesBrouillon</div>
+                <div class="stat-label">Brouillons</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-0 stat-card stat-info h-100">
+            <div class="card-body text-center py-4">
+                <div class="stat-icon mb-2">
+                    <i class="bi bi-chat-dots text-info" style="font-size: 2rem;"></i>
+                </div>
+                <div class="stat-value">@Model.CommentairesRecus</div>
+                <div class="stat-label">Commentaires</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Annonces -->
+<div class="card border-0">
+    <div class="card-header bg-white py-3 border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-clock-history text-primary me-2"></i>Mes dernières annonces
+            </h5>
+            <a asp-controller="Annonces" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                Voir toutes <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.DernieresAnnonces.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Annonce</th>
+                            <th>Catégorie</th>
+                            <th>Ville</th>
+                            <th>Prix</th>
+                            <th>Date</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.DernieresAnnonces)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center me-3" 
+                                             style="width: 48px; height: 48px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                        <div>
+                                            <a asp-controller="Annonces" asp-action="Details" asp-route-id="@a.Id" 
+                                               class="fw-semibold text-dark text-decoration-none">
+                                                @a.Titre
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">@a.Categorie</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">
+                                        <i class="bi bi-geo-alt me-1"></i>@a.Ville
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-primary">@a.Prix.ToString("N0") MAD</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        @a.DatePublication.ToLocalTime().ToString("dd MMM yyyy")
+                                    </small>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-controller="Annonces" asp-action="Details" asp-route-id="@a.Id" 
+                                           class="btn btn-outline-secondary" title="Voir">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-controller="Annonces" asp-action="Edit" asp-route-id="@a.Id" 
+                                           class="btn btn-outline-primary" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="submit" form="delete-annonce-@a.Id" class="btn btn-outline-danger" title="Supprimer"
+                                                onclick="return confirm('Supprimer cette annonce ?');">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    <form asp-controller="Annonces" asp-action="Delete" asp-route-id="@a.Id" method="post" id="delete-annonce-@a.Id" class="d-none">
+                                        @Html.AntiForgeryToken()
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state py-5">
+                <div class="empty-state-icon">📭</div>
+                <h3 class="empty-state-title">Aucune annonce</h3>
+                <p class="empty-state-text">Vous n'avez pas encore publié d'annonce.</p>
+                <a class="btn btn-primary" asp-controller="Annonces" asp-action="Create">
+                    <i class="bi bi-plus-lg me-2"></i>Créer ma première annonce
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Quick Tips -->
+<div class="card border-0 mt-4 bg-primary bg-opacity-10">
+    <div class="card-body p-4">
+        <h5 class="fw-semibold mb-3">
+            <i class="bi bi-lightbulb text-warning me-2"></i>Conseils pour vendre rapidement
+        </h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="d-flex align-items-start">
+                    <span class="badge bg-primary rounded-circle me-3 p-2">1</span>
+                    <div>
+                        <strong>Photos de qualité</strong>
+                        <p class="text-muted small mb-0">Ajoutez plusieurs photos claires et bien éclairées</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-start">
+                    <span class="badge bg-primary rounded-circle me-3 p-2">2</span>
+                    <div>
+                        <strong>Description détaillée</strong>
+                        <p class="text-muted small mb-0">Décrivez l'état, les caractéristiques et l'historique</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-start">
+                    <span class="badge bg-primary rounded-circle me-3 p-2">3</span>
+                    <div>
+                        <strong>Prix compétitif</strong>
+                        <p class="text-muted small mb-0">Recherchez les prix du marché pour bien positionner votre annonce</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+@model Web_AIA.Models.AnnonceFormViewModel
+@{
+    ViewData["Title"] = "Modifier l'annonce";
+}
+
+<!-- Page Header -->
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Annonces</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">@Model.Titre</a></li>
+            <li class="breadcrumb-item active">Modifier</li>
+        </ol>
+    </nav>
+    <h1 class="h3 fw-bold">
+        <i class="bi bi-pencil-square text-primary me-2"></i>Modifier l'annonce
+    </h1>
+    <p class="text-muted mb-0">Mettez à jour les informations de votre annonce</p>
+</div>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data" id="annonce-form">
+    <input type="hidden" asp-for="Id" />
+    <partial name="_Form" model="Model" />
+</form>
+
+@section Scripts {
+    <partial name="_FormScripts" model="Model" />
+}

@@ -1,0 +1,292 @@
+@model Web_AIA.Models.AnnonceDetailViewModel
+@{
+    ViewData["Title"] = Model.Annonce?.Titre ?? "Annonce";
+    var details = new Dictionary<string, object?>();
+    if (!string.IsNullOrWhiteSpace(Model.Annonce?.DetailsJson))
+    {
+        details = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object?>>(Model.Annonce.DetailsJson!) ?? new();
+    }
+    var ownerInitial = Model.Annonce?.Utilisateur?.NomComplet?.FirstOrDefault() ?? Model.Annonce?.Utilisateur?.UserName?.FirstOrDefault() ?? 'U';
+}
+
+<div class="row g-4">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Gallery -->
+        @if (Model.Annonce?.Medias?.Any() == true)
+        {
+            <div class="card border-0 mb-4" id="gallery">
+                <div class="gallery-container">
+                    <div class="gallery-main">
+                        <img src="@Url.Action("Image", "Annonces", new { id = Model.Annonce.Medias.First().Id })" alt="@Model.Annonce.Titre" id="main-image" />
+                    </div>
+                    @if (Model.Annonce.Medias.Count > 1)
+                    {
+                        <button class="gallery-nav prev" type="button" data-direction="prev">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <button class="gallery-nav next" type="button" data-direction="next">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        <div class="gallery-progress">
+                            <div class="gallery-progress-bar"></div>
+                        </div>
+                    }
+                </div>
+                @if (Model.Annonce.Medias.Count > 1)
+                {
+                    <div class="gallery-thumbs p-3">
+                        @{ var idx = 0; }
+                        @foreach (var media in Model.Annonce.Medias)
+                        {
+                            var isActive = idx == 0 ? "active" : "";
+                            <div class="gallery-thumb @isActive" data-index="@idx" data-src="@Url.Action("Image", "Annonces", new { id = media.Id })">
+                                <img src="@Url.Action("Image", "Annonces", new { id = media.Id })" alt="Thumbnail @(idx + 1)" />
+                            </div>
+                            idx++;
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Annonce Details Card -->
+        <div class="card border-0 mb-4">
+            <div class="card-body p-4">
+                <!-- Header -->
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <h1 class="h3 fw-bold mb-2">@Model.Annonce?.Titre</h1>
+                        <div class="d-flex flex-wrap gap-2 align-items-center text-muted small">
+                            <span><i class="bi bi-tag me-1"></i>@Model.Annonce?.Categorie?.Nom</span>
+                            <span>•</span>
+                            <span><i class="bi bi-geo-alt me-1"></i>@Model.Annonce?.Ville</span>
+                            <span>•</span>
+                            <span class="badge @(Model.Annonce?.Etat.ToString() == "Neuf" ? "badge-new" : "badge-used")">
+                                @Model.Annonce?.Etat
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="h2 fw-bold text-primary mb-0">@Model.Annonce?.Prix.ToString("N0") MAD</div>
+                        @if(Model.Annonce?.PrixNegociable == true)
+                        {
+                            <span class="badge badge-negociable">
+                                <i class="bi bi-chat-dots me-1"></i>Prix négociable
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <h5 class="fw-semibold mb-3">
+                        <i class="bi bi-text-paragraph text-primary me-2"></i>Description
+                    </h5>
+                    <p class="text-secondary lh-lg">@Model.Annonce?.Description</p>
+                </div>
+
+                <!-- Transaction Mode -->
+                <div class="mb-4">
+                    <h5 class="fw-semibold mb-3">
+                        <i class="bi bi-truck text-primary me-2"></i>Mode de transaction
+                    </h5>
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        <i class="bi bi-box-seam me-1"></i>@Model.Annonce?.ModeTransaction
+                    </span>
+                </div>
+
+                <!-- Specific Details -->
+                @if (details.Any())
+                {
+                    <div class="mb-4">
+                        <h5 class="fw-semibold mb-3">
+                            <i class="bi bi-list-check text-primary me-2"></i>Caractéristiques
+                        </h5>
+                        <div class="annonce-specs">
+                            @foreach (var kvp in details)
+                            {
+                                <div class="annonce-spec">
+                                    <span class="annonce-spec-label">@kvp.Key</span>
+                                    <span class="annonce-spec-value">@kvp.Value</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Publication Info -->
+                <div class="border-top pt-3 mt-4">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        Publié le @Model.Annonce?.DatePublication.ToLocalTime().ToString("dd MMMM yyyy à HH:mm")
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="card border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-semibold mb-4">
+                    <i class="bi bi-chat-dots text-primary me-2"></i>
+                    Commentaires <span class="badge bg-primary rounded-pill ms-1">@Model.Commentaires.Count()</span>
+                </h5>
+
+                @if (Model.Commentaires.Any())
+                {
+                    <div class="comment-list mb-4">
+                        @foreach (var c in Model.Commentaires)
+                        {
+                            var commentInitial = c.Utilisateur?.UserName?.FirstOrDefault() ?? 'U';
+                            <div class="comment-item">
+                                <div class="comment-avatar">@commentInitial</div>
+                                <div class="comment-content">
+                                    <div class="comment-header">
+                                        <span class="comment-author">@c.Utilisateur?.UserName</span>
+                                        <span class="comment-date">@c.DateCommentaire.ToLocalTime().ToString("dd MMM yyyy à HH:mm")</span>
+                                    </div>
+                                    <p class="mb-0">@c.Contenu</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-left-text" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Aucun commentaire pour le moment</p>
+                    </div>
+                }
+
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <form asp-action="Commenter" method="post" class="mt-4">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="AnnonceId" value="@Model.Annonce?.Id" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-pencil me-1"></i>Ajouter un commentaire
+                            </label>
+                            <textarea name="Contenu" class="form-control" rows="3" 
+                                      placeholder="Écrivez votre commentaire ici..." required></textarea>
+                            <span asp-validation-for="NouveauCommentaire.Contenu" class="text-danger small"></span>
+                        </div>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-send me-2"></i>Publier
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-light border text-center">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <a asp-controller="Account" asp-action="Login">Connectez-vous</a> pour laisser un commentaire.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Owner Card -->
+        <div class="card border-0 owner-card mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-semibold mb-4 text-center">
+                    <i class="bi bi-person-badge text-primary me-2"></i>Vendeur
+                </h5>
+                <div class="owner-avatar">@ownerInitial</div>
+                <div class="owner-name">
+                    @(!string.IsNullOrWhiteSpace(Model.Annonce?.Utilisateur?.NomComplet) 
+                        ? Model.Annonce.Utilisateur.NomComplet 
+                        : Model.Annonce?.Utilisateur?.UserName)
+                </div>
+                <div class="owner-since">
+                    <i class="bi bi-calendar-check me-1"></i>
+                    Membre depuis @Model.Annonce?.Utilisateur?.DateInscription.ToLocalTime().ToString("MMMM yyyy")
+                </div>
+                
+                <div class="owner-contact">
+                    <div class="owner-contact-item">
+                        <i class="bi bi-envelope text-primary"></i>
+                        <span>@Model.Annonce?.Utilisateur?.Email</span>
+                    </div>
+                    <div class="owner-contact-item">
+                        <i class="bi bi-telephone text-primary"></i>
+                        <span>
+                            @(string.IsNullOrWhiteSpace(Model.Annonce?.Utilisateur?.Telephone) 
+                                ? (Model.Annonce?.Utilisateur?.PhoneNumber ?? "Non communiqué") 
+                                : Model.Annonce.Utilisateur.Telephone)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a href="mailto:@Model.Annonce?.Utilisateur?.Email" class="btn btn-primary">
+                        <i class="bi bi-envelope me-2"></i>Contacter par email
+                    </a>
+                    @if (!string.IsNullOrWhiteSpace(Model.Annonce?.Utilisateur?.Telephone) || !string.IsNullOrWhiteSpace(Model.Annonce?.Utilisateur?.PhoneNumber))
+                    {
+                        <a href="tel:@(Model.Annonce?.Utilisateur?.Telephone ?? Model.Annonce?.Utilisateur?.PhoneNumber)" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-telephone me-2"></i>Appeler
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-semibold mb-3">
+                    <i class="bi bi-gear text-primary me-2"></i>Actions
+                </h5>
+                @if (User.Identity?.IsAuthenticated == true && Model.Annonce?.UtilisateurId == Context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                {
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Annonce?.Id">
+                            <i class="bi bi-pencil me-2"></i>Modifier l'annonce
+                        </a>
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" name="id" value="@Model.Annonce?.Id" />
+                            <button type="submit" class="btn btn-outline-danger w-100" 
+                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?');">
+                                <i class="bi bi-trash me-2"></i>Supprimer
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Seul le propriétaire peut modifier ou supprimer cette annonce.
+                    </p>
+                }
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-light w-100">
+                <i class="bi bi-arrow-left me-2"></i>Retour aux annonces
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        ready(() => {
+            Gallery.interval = 3200; // speed up for a smoother, dynamic loop
+            Gallery.init('gallery');
+        });
+    </script>
+}

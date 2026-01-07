@@ -1,0 +1,211 @@
+﻿@model Web_AIA.Models.AnnonceFiltreViewModel
+@{
+    ViewData["Title"] = "Accueil";
+}
+
+<!-- Hero Section -->
+<section class="hero-section rounded-4 mb-5">
+    <div class="px-4">
+        <h1 class="display-5 fw-bold mb-3">Trouvez ce que vous cherchez</h1>
+        <p class="lead opacity-90 mb-4">
+            Des milliers d'annonces près de chez vous. Achetez, vendez, échangez en toute simplicité.
+        </p>
+        
+        <!-- Search Bar -->
+        <div class="search-bar-wrapper mx-auto" style="max-width: 700px;">
+            <form asp-action="Index" method="get" class="d-flex flex-column flex-md-row gap-2">
+                <div class="flex-grow-1">
+                    <input asp-for="MotCle" class="form-control form-control-lg border-0" 
+                           placeholder="Que recherchez-vous ?" />
+                </div>
+                <div class="flex-grow-1">
+                    <select asp-for="CategorieId" class="form-select form-select-lg border-0" 
+                            asp-items="@(new SelectList(Model.Categories, nameof(Categorie.Id), nameof(Categorie.Nom)))">
+                        <option value="">Toutes les catégories</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-lg btn-primary px-4">
+                    <i class="bi bi-search me-2"></i>Rechercher
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <!-- Sidebar - Categories -->
+    <div class="col-lg-3">
+        <div class="card border-0 sticky-top" style="top: 100px;">
+            <div class="card-body">
+                <h5 class="card-title d-flex align-items-center mb-4">
+                    <i class="bi bi-filter-circle text-primary me-2"></i>
+                    Filtrer
+                </h5>
+                
+                <form asp-action="Index" method="get">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small text-uppercase text-muted">Mot-clé</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input asp-for="MotCle" class="form-control border-start-0" placeholder="Rechercher..." />
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small text-uppercase text-muted">Catégorie</label>
+                        <select asp-for="CategorieId" class="form-select" 
+                                asp-items="@(new SelectList(Model.Categories, nameof(Categorie.Id), nameof(Categorie.Nom)))">
+                            <option value="">Toutes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small text-uppercase text-muted">Ville</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-geo-alt text-muted"></i>
+                            </span>
+                            <input asp-for="Ville" class="form-control border-start-0" placeholder="Ex: Casablanca" />
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small text-uppercase text-muted">État</label>
+                        <select asp-for="Etat" class="form-select">
+                            <option value="">Tous</option>
+                            @foreach (var etat in Enum.GetValues(typeof(Web_AIA.Entities.EtatAnnonce)))
+                            {
+                                <option value="@etat">@etat</option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-2"></i>Appliquer les filtres
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9">
+        <!-- Section Header -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
+            <div>
+                <h2 class="h4 fw-bold mb-1">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Annonces récentes
+                </h2>
+                <p class="text-muted mb-0">@Model.Resultats.Count() annonces trouvées</p>
+            </div>
+            <a class="btn btn-success d-flex align-items-center" asp-controller="Annonces" asp-action="Create">
+                <i class="bi bi-plus-lg me-2"></i>Publier une annonce
+            </a>
+        </div>
+
+        @if (Model.Resultats.Any())
+        {
+            <!-- Annonces Grid -->
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                @foreach (var item in Model.Resultats)
+                {
+                    <div class="col">
+                        <div class="card annonce-card h-100 border-0">
+                            @if (item.MediaId.HasValue)
+                            {
+                                <div class="position-relative">
+                                    <img src="@Url.Action("Image", "Annonces", new { id = item.MediaId })" class="card-img-top" alt="@item.Titre" 
+                                         style="height: 180px; object-fit: cover;" />
+                                    <span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75">
+                                        <i class="bi bi-camera me-1"></i>Photo
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 180px;">
+                                    <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                </div>
+                            }
+                            <div class="card-body">
+                                <h5 class="card-title text-truncate mb-2">@item.Titre</h5>
+                                <p class="card-subtitle text-muted small mb-3">
+                                    <i class="bi bi-tag me-1"></i>@item.Categorie
+                                    <span class="mx-1">•</span>
+                                    <i class="bi bi-geo-alt me-1"></i>@item.Ville
+                                </p>
+                                <div class="annonce-price mb-3">@item.Prix.ToString("N0") MAD</div>
+                                <div class="card-actions">
+                                    <a class="btn btn-outline-primary btn-sm flex-grow-1" 
+                                       asp-controller="Annonces" asp-action="Details" asp-route-id="@item.Id">
+                                        <i class="bi bi-eye me-1"></i>Voir détails
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0 pt-0">
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    @item.DatePublication.ToLocalTime().ToString("dd MMM yyyy")
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="card border-0">
+                <div class="card-body empty-state py-5">
+                    <div class="empty-state-icon">📭</div>
+                    <h3 class="empty-state-title">Aucune annonce trouvée</h3>
+                    <p class="empty-state-text">
+                        Il n'y a pas encore d'annonces correspondant à vos critères.
+                    </p>
+                    <a class="btn btn-primary" asp-controller="Annonces" asp-action="Create">
+                        <i class="bi bi-plus-lg me-2"></i>Publier la première annonce
+                    </a>
+                </div>
+            </div>
+        }
+
+        <!-- Categories Stats Section -->
+        @if (Model.CategoriesStats.Any())
+        {
+            <div class="mt-5">
+                <h3 class="h5 fw-bold mb-4">
+                    <i class="bi bi-grid-3x3-gap text-primary me-2"></i>Explorer par catégorie
+                </h3>
+                <div class="row row-cols-1 row-cols-md-2 g-3">
+                    @foreach (var cat in Model.CategoriesStats)
+                    {
+                        var icons = new Dictionary<string, string> {
+                            {"Immobilier", "🏠"},
+                            {"Véhicules", "🚗"},
+                            {"Électronique", "📱"},
+                            {"Maison et Jardin", "🏡"},
+                            {"Mode et Accessoires", "👕"},
+                            {"Sports et Loisirs", "⚽"}
+                        };
+                        var icon = icons.GetValueOrDefault(cat.Nom, "📦");
+                        
+                        <div class="col">
+                            <a class="category-card shadow-sm" asp-controller="Annonces" asp-action="Index" asp-route-CategorieId="@cat.Id">
+                                <div class="category-icon">@icon</div>
+                                <div class="category-info">
+                                    <div class="category-name">@cat.Nom</div>
+                                    <div class="category-count">@cat.NombreAnnonces annonce(s)</div>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">@cat.NombreAnnonces</span>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

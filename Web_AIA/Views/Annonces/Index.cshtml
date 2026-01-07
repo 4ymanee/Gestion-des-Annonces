@@ -1,0 +1,160 @@
+@model Web_AIA.Models.AnnonceFiltreViewModel
+@{
+    ViewData["Title"] = "Annonces";
+    var icons = new Dictionary<string, string> {
+        {"Immobilier", "🏠"},
+        {"Véhicules", "🚗"},
+        {"Électronique", "📱"},
+        {"Maison et Jardin", "🏡"},
+        {"Mode et Accessoires", "👕"},
+        {"Sports et Loisirs", "⚽"}
+    };
+}
+
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div>
+        <h1 class="h3 fw-bold mb-1">
+            <i class="bi bi-grid-3x3-gap text-primary me-2"></i>Parcourir les annonces
+        </h1>
+        <p class="text-muted mb-0">Explorez toutes les catégories disponibles</p>
+    </div>
+    <a class="btn btn-success d-flex align-items-center" asp-action="Create">
+        <i class="bi bi-plus-lg me-2"></i>Publier une annonce
+    </a>
+</div>
+
+<!-- Categories Grid -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+    @foreach (var cat in Model.CategoriesStats)
+    {
+        var icon = icons.GetValueOrDefault(cat.Nom, "📦");
+        <div class="col">
+            <a class="category-card shadow-sm h-100" asp-action="Index" asp-route-CategorieId="@cat.Id">
+                <div class="category-icon">@icon</div>
+                <div class="category-info flex-grow-1">
+                    <div class="category-name fs-5">@cat.Nom</div>
+                    <div class="category-count">
+                        @if (!string.IsNullOrWhiteSpace(cat.Description))
+                        {
+                            <span class="d-block text-truncate" style="max-width: 200px;">@cat.Description</span>
+                        }
+                    </div>
+                </div>
+                <div class="d-flex flex-column align-items-end">
+                    <span class="badge bg-primary rounded-pill fs-6 mb-1">@cat.NombreAnnonces</span>
+                    <small class="text-muted">annonce(s)</small>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Filtered Results -->
+<div class="border-top pt-5">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
+        <div>
+            <h2 class="h4 fw-bold mb-1">
+                <i class="bi bi-list-ul text-primary me-2"></i>
+                @if (Model.CategorieId.HasValue)
+                {
+                    var selectedCat = Model.CategoriesStats.FirstOrDefault(c => c.Id == Model.CategorieId);
+                    <span>@selectedCat?.Nom</span>
+                }
+                else
+                {
+                    <span>Toutes les annonces</span>
+                }
+            </h2>
+            <p class="text-muted mb-0">@Model.Resultats.Count() résultat(s) trouvé(s)</p>
+        </div>
+        
+        <!-- Quick Filters -->
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-sm @(Model.CategorieId == null ? "btn-primary" : "btn-outline-secondary")" 
+               asp-action="Index">Toutes</a>
+            @foreach (var cat in Model.CategoriesStats.Take(4))
+            {
+                <a class="btn btn-sm @(Model.CategorieId == cat.Id ? "btn-primary" : "btn-outline-secondary")" 
+                   asp-action="Index" asp-route-CategorieId="@cat.Id">@cat.Nom</a>
+            }
+        </div>
+    </div>
+
+    @if (Model.Resultats.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+            @foreach (var item in Model.Resultats)
+            {
+                <div class="col">
+                    <div class="card annonce-card h-100 border-0">
+                        @if (item.MediaId.HasValue)
+                        {
+                            <div class="position-relative">
+                                <img src="@Url.Action("Image", "Annonces", new { id = item.MediaId })" class="card-img-top" alt="@item.Titre" 
+                                     style="height: 200px; object-fit: cover;" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate mb-2">@item.Titre</h5>
+                            <p class="card-subtitle text-muted small mb-3">
+                                <i class="bi bi-tag me-1"></i>@item.Categorie
+                                <span class="mx-1">•</span>
+                                <i class="bi bi-geo-alt me-1"></i>@item.Ville
+                            </p>
+                            <div class="annonce-price mb-3">@item.Prix.ToString("N0") MAD</div>
+                            <div class="card-actions">
+                                <a class="btn btn-outline-primary btn-sm" asp-action="Details" asp-route-id="@item.Id">
+                                    <i class="bi bi-eye me-1"></i>Détails
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0 pt-0">
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>
+                                @item.DatePublication.ToLocalTime().ToString("dd MMM yyyy")
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (Model.CategorieId.HasValue || !string.IsNullOrEmpty(Model.MotCle))
+    {
+        <div class="card border-0 mt-4">
+            <div class="card-body empty-state py-5">
+                <div class="empty-state-icon">🔍</div>
+                <h3 class="empty-state-title">Aucun résultat</h3>
+                <p class="empty-state-text">
+                    Aucune annonce ne correspond à vos critères de recherche.
+                </p>
+                <a class="btn btn-outline-primary" asp-action="Index">
+                    <i class="bi bi-arrow-left me-2"></i>Voir toutes les annonces
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 mt-4">
+            <div class="card-body empty-state py-5">
+                <div class="empty-state-icon">📭</div>
+                <h3 class="empty-state-title">Aucune annonce disponible</h3>
+                <p class="empty-state-text">
+                    Revenez plus tard ou créez la première annonce.
+                </p>
+                <a class="btn btn-primary" asp-action="Create">
+                    <i class="bi bi-plus-lg me-2"></i>Publier une annonce
+                </a>
+            </div>
+        </div>
+    }
+</div>

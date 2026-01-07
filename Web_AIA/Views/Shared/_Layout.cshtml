@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="IZIDEAL - La plateforme d'annonces en ligne" />
+    <title>@ViewData["Title"] - IZIDEAL</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Web_AIA.styles.css" asp-append-version="true" />
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="me-2">🏷️</span>
+                    <span>IZIDEAL</span>
+                </a>
+                
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
+                        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door me-1"></i>Accueil
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Annonces" asp-action="Index">
+                                <i class="bi bi-grid me-1"></i>Annonces
+                            </a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="bi bi-speedometer2 me-1"></i>Tableau de bord
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <a class="btn btn-success btn-sm d-flex align-items-center" asp-controller="Annonces" asp-action="Create">
+                                <i class="bi bi-plus-lg me-1"></i>
+                                <span class="d-none d-md-inline">Publier</span>
+                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center" 
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-1"></i>
+                                    <span class="d-none d-md-inline">@User.Identity!.Name</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">
+                                            <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-primary btn-sm" asp-controller="Account" asp-action="Login">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Connexion
+                            </a>
+                            <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">
+                                <i class="bi bi-person-plus me-1"></i>Inscription
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="site-main">
+        <div class="container py-4">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="footer mt-auto">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="footer-brand text-white mb-2">🏷️ IZIDEAL</div>
+                    <p class="text-secondary small">
+                        La plateforme de petites annonces qui simplifie vos transactions.
+                        Achetez, vendez et échangez en toute simplicité.
+                    </p>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <h6 class="text-white text-uppercase small mb-3">Navigation</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="/" class="text-secondary text-decoration-none">Accueil</a></li>
+                        <li><a href="/Annonces" class="text-secondary text-decoration-none">Annonces</a></li>
+                        <li><a href="/Home/Privacy" class="text-secondary text-decoration-none">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <h6 class="text-white text-uppercase small mb-3">Catégories</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="/Annonces?CategorieId=1" class="text-secondary text-decoration-none">Immobilier</a></li>
+                        <li><a href="/Annonces?CategorieId=2" class="text-secondary text-decoration-none">Véhicules</a></li>
+                        <li><a href="/Annonces?CategorieId=3" class="text-secondary text-decoration-none">Électronique</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="text-white text-uppercase small mb-3">Contact</h6>
+                    <ul class="list-unstyled small text-secondary">
+                        <li><i class="bi bi-envelope me-2"></i>contact@izideal.ma</li>
+                        <li><i class="bi bi-telephone me-2"></i>+212 5XX XX XX XX</li>
+                        <li><i class="bi bi-geo-alt me-2"></i>Casablanca, Maroc</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 border-secondary">
+            <div class="text-center text-secondary small">
+                &copy; @DateTime.Now.Year IZIDEAL - Tous droits réservés
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

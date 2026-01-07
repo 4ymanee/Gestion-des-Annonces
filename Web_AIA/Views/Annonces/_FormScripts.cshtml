@@ -1,0 +1,210 @@
+@model Web_AIA.Models.AnnonceFormViewModel
+<partial name="_ValidationScriptsPartial" />
+<script>
+    const champsParCategorie = {
+        "Immobilier": [
+            { name: "Type de bien", key: "typeBien", type: "select", required: true, options: ["Maison", "Appartement", "Terrain", "Parking", "Bureau", "Autre"] },
+            { name: "Type de transaction", key: "typeTransaction", type: "select", required: true, options: ["Vente", "Location"] },
+            { name: "Surface (m²)", key: "surface", type: "number", required: false },
+            { name: "Nombre de pièces", key: "pieces", type: "number", required: false },
+            { name: "Commodités", key: "commodites", type: "checkbox", required: false, options: ["Ascenseur", "Parking", "Cave", "Balcon/Terrasse", "Jardin", "Piscine", "Cheminée"] }
+        ],
+        "Véhicules": [
+            { name: "Type de véhicule", key: "typeVehicule", type: "select", required: true, options: ["Voiture", "Moto", "Camion", "Vélo", "Scooter", "Autre"] },
+            { name: "Marque", key: "marque", type: "text", required: false, suggestions: ["Toyota", "Volkswagen", "Renault", "Peugeot", "BMW"] },
+            { name: "Modèle", key: "modele", type: "text", required: false, suggestions: ["Clio", "308", "Golf", "Series 3", "Civic"] },
+            { name: "Année de mise en circulation", key: "annee", type: "number", required: true },
+            { name: "Kilométrage", key: "kilometrage", type: "number", required: false },
+            { name: "Carburant", key: "carburant", type: "select", required: false, options: ["Essence", "Diesel", "Électrique", "Hybride"] },
+            { name: "Boîte de vitesse", key: "boite", type: "select", required: false, options: ["Manuelle", "Automatique"] },
+            { name: "Puissance fiscale (CV)", key: "puissance", type: "number", required: false },
+            { name: "Couleur", key: "couleur", type: "text", required: false }
+        ],
+        "Électronique": [
+            { name: "Type d'appareil", key: "typeAppareil", type: "select", required: true, options: ["Téléphone", "Ordinateur portable", "Console de jeu", "Télévision", "Appareil photo", "Autre"] },
+            { name: "Marque", key: "marque", type: "text", required: true, suggestions: ["Apple", "Samsung", "HP", "Dell", "Sony"] },
+            { name: "Modèle", key: "modele", type: "text", required: true },
+            { name: "Capacité de stockage (Go)", key: "stockage", type: "number", required: false },
+            { name: "Accessoires inclus", key: "accessoires", type: "textarea", required: false }
+        ],
+        "Maison et Jardin": [
+            { name: "Sous-catégorie", key: "sousCategorie", type: "select", required: true, options: ["Meuble", "Électroménager", "Bricolage", "Décoration", "Jardinage", "Outillage", "Autre"] },
+            { name: "Matériau", key: "materiau", type: "text", required: false },
+            { name: "Dimensions (cm)", key: "dimensions", type: "text", required: false },
+            { name: "Marque", key: "marque", type: "text", required: false },
+            { name: "Modèle", key: "modele", type: "text", required: false }
+        ],
+        "Mode et Accessoires": [
+            { name: "Type d'article", key: "typeArticle", type: "select", required: true, options: ["Vêtement", "Chaussure", "Sac", "Bijou", "Accessoire"] },
+            { name: "Genre", key: "genre", type: "select", required: false, options: ["Homme", "Femme", "Enfant", "Unisexe"] },
+            { name: "Marque", key: "marque", type: "text", required: false },
+            { name: "Taille/Pointure", key: "taille", type: "text", required: true },
+            { name: "Couleur", key: "couleur", type: "text", required: false },
+            { name: "Matériau", key: "materiau", type: "text", required: false }
+        ],
+        "Sports et Loisirs": [
+            { name: "Sous-catégorie", key: "sousCategorie", type: "select", required: true, options: ["Équipement sport", "Instrument musique", "Jeux/Jouets", "Livres/CD/DVD", "Matériel camping"] },
+            { name: "Marque", key: "marque", type: "text", required: false },
+            { name: "Modèle", key: "modele", type: "text", required: false },
+            { name: "Taille", key: "taille", type: "text", required: false },
+            { name: "Niveau", key: "niveau", type: "select", required: false, options: ["Débutant", "Intermédiaire", "Expert"] }
+        ]
+    };
+
+    const dynamicContainer = document.getElementById("dynamic-fields");
+    const categorieSelect = document.getElementById("categorie-select");
+    const existingDetails = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Details ?? new Dictionary<string, string?>()));
+
+    function setValueFromExisting(input, key) {
+        if (!existingDetails || !existingDetails[key]) return;
+        const val = existingDetails[key];
+        if (input.type === "checkbox") {
+            input.checked = val.split(",").map(v => v.trim().toLowerCase()).includes(input.value.toLowerCase());
+        } else {
+            input.value = val;
+        }
+    }
+
+    function renderFields(categorieName) {
+        dynamicContainer.innerHTML = "";
+        const fields = champsParCategorie[categorieName];
+        if (!fields) return;
+
+        fields.forEach(f => {
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("mb-3");
+
+            const label = document.createElement("label");
+            label.classList.add("form-label");
+            label.innerText = f.name + (f.required ? " *" : "");
+            wrapper.appendChild(label);
+
+            let input;
+            if (f.type === "select") {
+                input = document.createElement("select");
+                input.classList.add("form-select");
+                input.name = `Details[${f.key}]`;
+                if (f.required) input.required = true;
+                const placeholder = document.createElement("option");
+                placeholder.value = "";
+                placeholder.innerText = "Choisir";
+                input.appendChild(placeholder);
+                f.options.forEach(opt => {
+                    const option = document.createElement("option");
+                    option.value = opt;
+                    option.innerText = opt;
+                    input.appendChild(option);
+                });
+            } else if (f.type === "textarea") {
+                input = document.createElement("textarea");
+                input.classList.add("form-control");
+                input.rows = 2;
+                input.name = `Details[${f.key}]`;
+                if (f.required) input.required = true;
+            } else if (f.type === "checkbox") {
+                const container = document.createElement("div");
+                container.classList.add("d-flex", "flex-wrap", "gap-2");
+                const hidden = document.createElement("input");
+                hidden.type = "hidden";
+                hidden.name = `Details[${f.key}]`;
+                container.appendChild(hidden);
+
+                const updateHidden = () => {
+                    const checked = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(c => c.value);
+                    hidden.value = checked.join(", ");
+                    if (f.required) hidden.required = true;
+                };
+
+                f.options.forEach(opt => {
+                    const checkWrapper = document.createElement("div");
+                    checkWrapper.classList.add("form-check");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.classList.add("form-check-input");
+                    checkbox.dataset.group = f.key;
+                    checkbox.value = opt;
+                    const lbl = document.createElement("label");
+                    lbl.classList.add("form-check-label");
+                    lbl.innerText = opt;
+                    checkbox.addEventListener("change", updateHidden);
+                    checkWrapper.appendChild(checkbox);
+                    checkWrapper.appendChild(lbl);
+                    container.appendChild(checkWrapper);
+                    setValueFromExisting(checkbox, f.key);
+                });
+
+                updateHidden();
+                wrapper.appendChild(container);
+                dynamicContainer.appendChild(wrapper);
+                return;
+            } else {
+                input = document.createElement("input");
+                input.classList.add("form-control");
+                input.type = f.type;
+                input.name = `Details[${f.key}]`;
+                if (f.required) input.required = true;
+                if (f.suggestions) {
+                    const listId = `list-${f.key}`;
+                    input.setAttribute("list", listId);
+                    const dataList = document.createElement("datalist");
+                    dataList.id = listId;
+                    f.suggestions.forEach(s => {
+                        const opt = document.createElement("option");
+                        opt.value = s;
+                        dataList.appendChild(opt);
+                    });
+                    wrapper.appendChild(dataList);
+                }
+            }
+
+            setValueFromExisting(input, f.key);
+            wrapper.appendChild(input);
+            dynamicContainer.appendChild(wrapper);
+        });
+    }
+
+    categorieSelect?.addEventListener("change", function () {
+        const selected = this.options[this.selectedIndex]?.text;
+        renderFields(selected);
+    });
+
+    const initialCategorie = categorieSelect?.options[categorieSelect.selectedIndex]?.text;
+    if (initialCategorie) {
+        renderFields(initialCategorie);
+    }
+
+    const photosInput = document.getElementById("photos-input");
+    const photosCounter = document.getElementById("photos-counter");
+    const maxPhotos = photosInput?.dataset?.maxFiles ? parseInt(photosInput.dataset.maxFiles, 10) : 5;
+    let photosBuffer = new DataTransfer();
+
+    const updatePhotosCounter = () => {
+        if (!photosInput || !photosCounter) return;
+        const count = photosInput.files?.length ?? 0;
+        photosCounter.textContent = count > 0 ? `${count}/${maxPhotos} photo(s)` : "";
+    };
+
+    photosInput?.addEventListener("change", function () {
+        if (!this.files) return;
+
+        const incoming = Array.from(this.files);
+        const existing = Array.from(photosBuffer.files);
+        const merged = existing.concat(incoming);
+
+        if (merged.length > maxPhotos) {
+            const message = `Maximum ${maxPhotos} photos autorisées.`;
+            this.value = ""; // reset only the new selection
+            this.setCustomValidity(message);
+            this.reportValidity();
+            setTimeout(() => this.setCustomValidity(""), 1500);
+            return;
+        }
+
+        photosBuffer = new DataTransfer();
+        merged.forEach(f => photosBuffer.items.add(f));
+        this.files = photosBuffer.files;
+        updatePhotosCounter();
+    });
+
+    updatePhotosCounter();
+</script>
